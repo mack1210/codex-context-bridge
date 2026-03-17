@@ -1,0 +1,31 @@
+{
+  "name": "codex-context-bridge",
+  "displayName": "Codex Context Bridge",
+  "description": "Adds selected text from non-file VS Code editors to the OpenAI Codex chat thread.",
+  "version": "0.0.1",
+  "publisher": "flowe-local",
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.98.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:codexContextBridge.addSelectionToThread",
+    "onCommand:codexContextBridge.addActiveDocumentToThread"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codexContextBridge.addSelectionToThread",
+        "title": "Codex Context Bridge: Add Selection To Thread"
+      },
+      {
+        "command": "codexContextBridge.addActiveDocumentToThread",
+        "title": "Codex Context Bridge: Add Active Document To Thread"
+      }
+    ]
+  }
+}
