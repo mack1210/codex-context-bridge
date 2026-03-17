@@ -9,11 +9,11 @@ This local VS Code extension works around a limitation in the OpenAI Codex exten
 ## What This Extension Does
 
 - Keeps the original behavior for normal files by delegating to `chatgpt.addToThread`.
-- For non-file editors, it writes the selected content or active document to a local markdown snapshot.
-- It then forwards that snapshot to `chatgpt.addFileToThread`, so the Codex thread still receives the context.
-- Snapshot filenames are formatted as `filename [Cell n, Line m].md` or `filename [Lines a-b].md` so the chat chip stays readable.
+- For non-file editors, it writes a temporary snapshot and forwards that snapshot to `chatgpt.addFileToThread`.
+- `Ctrl+L` selections are wrapped into a readable markdown file such as `filename [Cell n, Line m].md`.
+- `Ctrl+Shift+L` full-document attachments use the plain source filename so the chip stays as clean as possible.
 
-Snapshots are stored under `%USERPROFILE%\.codex-context-bridge\snapshots`.
+Snapshots are stored in a session-scoped folder under `%USERPROFILE%\.codex-context-bridge\snapshots` and are deleted when the extension session ends. Stale session folders older than one day are cleaned up on startup.
 
 ## Repository Layout
 

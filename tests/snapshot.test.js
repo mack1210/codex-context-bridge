@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("assert");
-const { buildSnapshotFileName, buildSnapshotMarkdown } = require("../lib/snapshot");
+const { buildSnapshotContent, buildSnapshotFileName } = require("../lib/snapshot");
 
 const selectionContext = {
   mode: "selection",
@@ -22,7 +22,7 @@ assert.strictEqual(
   "keybindings.json [Lines 1-4].md"
 );
 
-const selectionMarkdown = buildSnapshotMarkdown(selectionContext);
+const selectionMarkdown = buildSnapshotContent(selectionContext);
 assert.match(selectionMarkdown, /Source: keybindings\.json/);
 assert.match(selectionMarkdown, /Scheme: vscode-userdata/);
 assert.match(selectionMarkdown, /Selection: Lines 1-4/);
@@ -43,15 +43,11 @@ const notebookContext = {
   content: "print('hello world')\n"
 };
 
-const notebookMarkdown = buildSnapshotMarkdown(notebookContext);
+const notebookMarkdown = buildSnapshotContent(notebookContext);
 assert.strictEqual(
   buildSnapshotFileName(notebookContext),
-  "svd_practice.ipynb [Cell 2, Document].md"
+  "svd_practice.ipynb"
 );
-assert.match(notebookMarkdown, /Notebook: svd_practice\.ipynb/);
-assert.match(notebookMarkdown, /Notebook Cell: 2/);
-assert.match(notebookMarkdown, /Selection: Cell 2, Document/);
-assert.match(notebookMarkdown, /Source Path: C:\\Users\\flowe\\Documents\\Playground\\svd_practice\.ipynb/);
-assert.match(notebookMarkdown, /```python/);
+assert.strictEqual(notebookMarkdown, "print('hello world')\n");
 
 console.log("snapshot tests passed");

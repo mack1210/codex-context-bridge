@@ -1,16 +1,22 @@
 "use strict";
 
+const crypto = require("crypto");
 const fs = require("fs/promises");
 const os = require("os");
 const path = require("path");
 const vscode = require("vscode");
-const { buildSnapshotFileName, buildSnapshotMarkdown } = require("./lib/snapshot");
+const { buildSnapshotContent, buildSnapshotFileName } = require("./lib/snapshot");
 
 const CHATGPT_ADD_TO_THREAD = "chatgpt.addToThread";
 const CHATGPT_ADD_FILE_TO_THREAD = "chatgpt.addFileToThread";
-const SNAPSHOT_ROOT = path.join(os.homedir(), ".codex-context-bridge", "snapshots");
+const SNAPSHOT_BASE_ROOT = path.join(os.homedir(), ".codex-context-bridge", "snapshots");
+const SESSION_ID = `session-${Date.now()}-${process.pid}-${crypto.randomUUID().slice(0, 8)}`;
+const SNAPSHOT_ROOT = path.join(SNAPSHOT_BASE_ROOT, SESSION_ID);
+const STALE_SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
 function activate(context) {
+  void prepareSnapshotStorage();
+
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "codexContextBridge.addSelectionToThread",
@@ -24,9 +30,17 @@ function activate(context) {
       () => addActiveDocumentToThread()
     )
   );
+
+  context.subscriptions.push({
+    dispose() {
+      void cleanupCurrentSessionSnapshots();
+    }
+  });
 }
 
-function deactivate() {}
+function deactivate() {
+  void cleanupCurrentSessionSnapshots();
+}
 
 async function addSelectionToThread() {
   const editor = vscode.window.activeTextEditor;
@@ -82,11 +96,9 @@ async function executeChatGptCommand(commandId, argument) {
 
 async function materializeSnapshot(editor, mode) {
   const context = getSnapshotContext(editor, mode);
-  const snapshotPath = await reserveSnapshotPath(buildSnapshotFileName(context));
-  const snapshotContent = buildSnapshotMarkdown(context);
-
   await fs.mkdir(SNAPSHOT_ROOT, { recursive: true });
-  await pruneOldSnapshots();
+  const snapshotPath = await reserveSnapshotPath(buildSnapshotFileName(context));
+  const snapshotContent = buildSnapshotContent(context);
   await fs.writeFile(snapshotPath, snapshotContent, "utf8");
 
   return snapshotPath;
@@ -187,32 +199,38 @@ function selectionToLineRange(selection) {
   };
 }
 
-async function pruneOldSnapshots() {
+async function prepareSnapshotStorage() {
+  await fs.mkdir(SNAPSHOT_ROOT, { recursive: true });
+  await cleanupStaleSnapshotSessions();
+}
+
+async function cleanupStaleSnapshotSessions() {
   let entries;
 
   try {
-    entries = await fs.readdir(SNAPSHOT_ROOT, { withFileTypes: true });
+    entries = await fs.readdir(SNAPSHOT_BASE_ROOT, { withFileTypes: true });
   } catch {
     return;
   }
 
-  const files = [];
+  const now = Date.now();
 
   for (const entry of entries) {
-    if (!entry.isFile()) {
+    if (!entry.isDirectory()) {
       continue;
     }
 
-    const filePath = path.join(SNAPSHOT_ROOT, entry.name);
-    const stats = await fs.stat(filePath);
-    files.push({ filePath, modifiedMs: stats.mtimeMs });
-  }
+    const sessionPath = path.join(SNAPSHOT_BASE_ROOT, entry.name);
+    const stats = await fs.stat(sessionPath);
 
-  files.sort((left, right) => right.modifiedMs - left.modifiedMs);
-
-  for (const stale of files.slice(100)) {
-    await fs.rm(stale.filePath, { force: true });
+    if (now - stats.mtimeMs > STALE_SESSION_TTL_MS) {
+      await fs.rm(sessionPath, { recursive: true, force: true });
+    }
   }
+}
+
+async function cleanupCurrentSessionSnapshots() {
+  await fs.rm(SNAPSHOT_ROOT, { recursive: true, force: true });
 }
 
 module.exports = {
