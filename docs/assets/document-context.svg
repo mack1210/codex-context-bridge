@@ -1,0 +1,10 @@
+<svg width="920" height="190" viewBox="0 0 920 190" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="920" height="190" rx="20" fill="#F6F8FB"/>
+  <text x="34" y="48" fill="#223142" font-size="24" font-family="Segoe UI, Arial, sans-serif">Full-document attach stays minimal</text>
+
+  <rect x="34" y="76" width="300" height="46" rx="23" fill="white" stroke="#D5DCE5"/>
+  <rect x="54" y="91" width="16" height="16" rx="3" fill="#9FB2C7"/>
+  <text x="84" y="106" fill="#233142" font-size="20" font-family="Segoe UI, Arial, sans-serif">svd_practice.ipynb</text>
+
+  <text x="34" y="154" fill="#5E6C7A" font-size="18" font-family="Segoe UI, Arial, sans-serif">Ctrl+Shift+L uses only the source filename when the whole non-file document is attached.</text>
+</svg>
