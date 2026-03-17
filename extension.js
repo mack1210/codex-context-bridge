@@ -82,16 +82,34 @@ async function executeChatGptCommand(commandId, argument) {
 
 async function materializeSnapshot(editor, mode) {
   const context = getSnapshotContext(editor, mode);
-  const snapshotName = `${Date.now()}-${buildSnapshotFileName(context)}`;
+  const snapshotPath = await reserveSnapshotPath(buildSnapshotFileName(context));
   const snapshotContent = buildSnapshotMarkdown(context);
 
   await fs.mkdir(SNAPSHOT_ROOT, { recursive: true });
   await pruneOldSnapshots();
-
-  const snapshotPath = path.join(SNAPSHOT_ROOT, snapshotName);
   await fs.writeFile(snapshotPath, snapshotContent, "utf8");
 
   return snapshotPath;
+}
+
+async function reserveSnapshotPath(baseName) {
+  const parsed = path.parse(baseName);
+  let attempt = 0;
+
+  while (true) {
+    const fileName =
+      attempt === 0
+        ? `${parsed.name}${parsed.ext}`
+        : `${parsed.name} (${attempt + 1})${parsed.ext}`;
+    const candidate = path.join(SNAPSHOT_ROOT, fileName);
+
+    try {
+      await fs.access(candidate);
+      attempt += 1;
+    } catch {
+      return candidate;
+    }
+  }
 }
 
 function getSnapshotContext(editor, mode) {

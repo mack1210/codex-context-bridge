@@ -19,13 +19,13 @@ const selectionContext = {
 
 assert.strictEqual(
   buildSnapshotFileName(selectionContext),
-  "keybindings.json-selection.md"
+  "keybindings.json [Lines 1-4].md"
 );
 
 const selectionMarkdown = buildSnapshotMarkdown(selectionContext);
 assert.match(selectionMarkdown, /Source: keybindings\.json/);
 assert.match(selectionMarkdown, /Scheme: vscode-userdata/);
-assert.match(selectionMarkdown, /Selected Lines: 1-4/);
+assert.match(selectionMarkdown, /Selection: Lines 1-4/);
 assert.match(selectionMarkdown, /```json/);
 assert.match(selectionMarkdown, /\[\{"key":"ctrl\+l"\}\]/);
 
@@ -44,8 +44,13 @@ const notebookContext = {
 };
 
 const notebookMarkdown = buildSnapshotMarkdown(notebookContext);
+assert.strictEqual(
+  buildSnapshotFileName(notebookContext),
+  "svd_practice.ipynb [Cell 2, Document].md"
+);
 assert.match(notebookMarkdown, /Notebook: svd_practice\.ipynb/);
 assert.match(notebookMarkdown, /Notebook Cell: 2/);
+assert.match(notebookMarkdown, /Selection: Cell 2, Document/);
 assert.match(notebookMarkdown, /Source Path: C:\\Users\\flowe\\Documents\\Playground\\svd_practice\.ipynb/);
 assert.match(notebookMarkdown, /```python/);
 
