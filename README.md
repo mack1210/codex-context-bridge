@@ -23,11 +23,11 @@ This bridge keeps the default Codex behavior whenever it can:
 
 Selection attach from a notebook cell or VS Code profile JSON:
 
-![Selection attach example](docs/assets/selection-context.svg)
+![Selection attach example](docs/assets/selection-context.png)
 
 Full-document attach from a non-file editor:
 
-![Full document attach example](docs/assets/document-context.svg)
+![Full document attach example](docs/assets/document-context.png)
 
 ## Behavior
 

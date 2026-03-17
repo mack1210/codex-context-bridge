@@ -1,0 +1,7 @@
+.git/**
+.github/**
+tests/**
+scripts/**
+OPENAI_ISSUE_DRAFT.md
+docs/assets/*.svg
+*.ps1
