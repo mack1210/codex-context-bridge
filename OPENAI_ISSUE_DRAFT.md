@@ -4,6 +4,13 @@
 
 `chatgpt.addToThread` should support notebook cells and other non-file VS Code editors
 
+## Suggested labels
+
+- `bug`
+- `ide-extension`
+- `vscode`
+- `feature-request`
+
 ## Summary
 
 In the VS Code Codex extension, `chatgpt.addToThread` and `chatgpt.addFileToThread` work well for normal `file:` editors, but they do not work for editors backed by non-file URI schemes such as:
@@ -32,6 +39,7 @@ Or:
 
 - Nothing is attached to Codex chat.
 - The command effectively no-ops for non-file editors.
+- By contrast, the same keybinding works correctly on normal `file:` editors such as `.py` and `.md`.
 
 ## Expected behavior
 
@@ -53,6 +61,17 @@ Examples:
 - `keybindings.json • Lines 12-18`
 - full document: `svd_practice.ipynb`
 
+## Native behavior should be preferred
+
+The best outcome would be a native implementation inside the Codex extension rather than requiring local snapshot workarounds.
+
+Preferred behavior:
+
+- keep the current native file-backed workflow unchanged
+- add first-class support for non-file text editors
+- preserve source metadata in the context chip where possible
+- avoid exposing temporary fallback file names to the user
+
 ## Observed cause
 
 From local inspection of the installed extension bundle, the add-to-thread path appears to return early unless the active editor URI scheme is exactly `file`.
@@ -72,6 +91,17 @@ Current behavior makes Codex less useful exactly where quick contextual handoff 
 - editor and profile configuration
 - virtual documents surfaced by VS Code and extensions
 
+## Current workaround
+
+I built a local bridge extension that:
+
+- preserves native Codex behavior for `file:` editors
+- creates a temporary snapshot only for non-file editors
+- adds selection metadata for partial context
+- keeps full-document attachments visually minimal
+
+This workaround confirms the UX is practical, but it should ideally be handled by the official extension.
+
 ## Suggested implementation direction
 
 Any native fix would be helpful, but two approaches seem reasonable:
@@ -87,6 +117,7 @@ Any native fix would be helpful, but two approaches seem reasonable:
 - VS Code: recent stable builds
 - Codex VS Code extension display name: `Codex – OpenAI’s coding agent`
 - Reproduced with notebook cells and profile `keybindings.json`
+- Reproduced on Windows with current stable Codex extension builds in March 2026
 
 ## Notes
 
