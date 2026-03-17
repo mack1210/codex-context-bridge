@@ -5,7 +5,7 @@ const fs = require("fs/promises");
 const os = require("os");
 const path = require("path");
 const vscode = require("vscode");
-const { buildSnapshotContent, buildSnapshotFileName } = require("./lib/snapshot");
+const { writeSnapshotFile } = require("./lib/snapshot-storage");
 
 const CHATGPT_ADD_TO_THREAD = "chatgpt.addToThread";
 const CHATGPT_ADD_FILE_TO_THREAD = "chatgpt.addFileToThread";
@@ -97,31 +97,7 @@ async function executeChatGptCommand(commandId, argument) {
 async function materializeSnapshot(editor, mode) {
   const context = getSnapshotContext(editor, mode);
   await fs.mkdir(SNAPSHOT_ROOT, { recursive: true });
-  const snapshotPath = await reserveSnapshotPath(buildSnapshotFileName(context));
-  const snapshotContent = buildSnapshotContent(context);
-  await fs.writeFile(snapshotPath, snapshotContent, "utf8");
-
-  return snapshotPath;
-}
-
-async function reserveSnapshotPath(baseName) {
-  const parsed = path.parse(baseName);
-  let attempt = 0;
-
-  while (true) {
-    const fileName =
-      attempt === 0
-        ? `${parsed.name}${parsed.ext}`
-        : `${parsed.name} (${attempt + 1})${parsed.ext}`;
-    const candidate = path.join(SNAPSHOT_ROOT, fileName);
-
-    try {
-      await fs.access(candidate);
-      attempt += 1;
-    } catch {
-      return candidate;
-    }
-  }
+  return writeSnapshotFile(SNAPSHOT_ROOT, context);
 }
 
 function getSnapshotContext(editor, mode) {
@@ -216,15 +192,21 @@ async function cleanupStaleSnapshotSessions() {
   const now = Date.now();
 
   for (const entry of entries) {
+    const snapshotPath = path.join(SNAPSHOT_BASE_ROOT, entry.name);
+
+    if (entry.isFile()) {
+      await fs.rm(snapshotPath, { force: true });
+      continue;
+    }
+
     if (!entry.isDirectory()) {
       continue;
     }
 
-    const sessionPath = path.join(SNAPSHOT_BASE_ROOT, entry.name);
-    const stats = await fs.stat(sessionPath);
+    const stats = await fs.stat(snapshotPath);
 
     if (now - stats.mtimeMs > STALE_SESSION_TTL_MS) {
-      await fs.rm(sessionPath, { recursive: true, force: true });
+      await fs.rm(snapshotPath, { recursive: true, force: true });
     }
   }
 }

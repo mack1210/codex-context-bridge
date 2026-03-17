@@ -47,8 +47,11 @@ The bridge writes temporary files only for non-file editors.
 
 - Snapshots live under `%USERPROFILE%\.codex-context-bridge\snapshots`
 - Each VS Code session gets its own snapshot folder
+- Repeated attachments for the same source and selection reuse the same snapshot path
+- Reattaching updates the snapshot content in place instead of creating numbered duplicates
 - The current session folder is deleted when the extension session ends
 - Session folders older than one day are removed on startup
+- Legacy loose files under the snapshot root are removed on startup
 
 This keeps the behavior simple:
 
